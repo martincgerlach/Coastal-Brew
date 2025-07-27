@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coastal Brew - Interaktiv Café</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Merriweather&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Merriweather', serif;
+      background-color: #f8f5f2;
+      color: #333;
+      margin: 0; padding: 0;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      color: #5a3e2b;
+    }
+    nav {
+      display: flex;
+      gap: 15px;
+      font-weight: bold;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+    }
+    nav a {
+      color: #5a3e2b;
+      text-decoration: none;
+      padding: 5px 8px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    nav a:hover {
+      background-color: #a06b3c;
+      color: white;
+    }
+
+    /* Kurv ikon og status */
+    #cart {
+      cursor: pointer;
+      position: relative;
+      font-size: 1.6rem;
+      color: #5a3e2b;
+      user-select: none;
+    }
+    #cart-count {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: #28a745;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Cinzel', serif;
+      color: #5a3e2b;
+      margin-top: 0;
+    }
+
+    /* Åbningstider og ventetid */
+    #status {
+      background: #e4f0e4;
+      color: #247524;
+      padding: 12px 15px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-bottom: 25px;
+      box-shadow: 0 0 10px #b0d8b0;
+    }
+
+    /* Filtrering */
+    #filters {
+      margin-bottom: 20px;
+    }
+    #filters button {
+      margin-right: 10px;
+      padding: 8px 15px;
+      border: 2px solid #5a3e2b;
+      background: transparent;
+      color: #5a3e2b;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    #filters button.active, #filters button:hover {
+      background-color: #5a3e2b;
+      color: #f8f5f2;
+    }
+
+    /* Menu grid */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+      gap: 20px;
+    }
+    .menu-item {
+      background: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      user-select: none;
+    }
+    .menu-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+    }
+    .menu-item img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .menu-item h3 {
+      margin: 5px 0;
+      font-size: 1.2rem;
+      color: #5a3e2b;
+    }
+    .menu-item p {
+      font-weight: bold;
+      margin: 0;
+      color: #3c3c3c;
+    }
+
+    /* Kurv dropdown */
+    #cart-dropdown {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      max-height: 400px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 10px;
+      padding: 15px;
+      overflow-y: auto;
+      display: none;
+      z-index: 999;
+      font-family: Arial, sans-serif;
+    }
+    #cart-dropdown h3 {
+      margin-top: 0;
+      color: #5a3e2b;
+    }
+    #cart-items {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 10px 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #cart-items li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
+    }
+    #cart-items li:last-child {
+      border-bottom: none;
+    }
+    .remove-btn {
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      color: #d9534f;
+      user-select: none;
+    }
+    #total-price {
+      font-weight: bold;
+      text-align: right;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      color: #5a3e2b;
+      font-size: 1.1rem;
+    }
+
+    /* Afhentningstid */
+    #pickup-time-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #5a3e2b;
+    }
+    #pickup-time {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #5a3e2b;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    #confirm-purchase {
+      width: 100%;
+      padding: 12px;
+      background: #28a745;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    #confirm-purchase:hover {
+      background: #1e7a31;
+    }
+
+    /* Chat ikon og popup */
+    #chat-icon {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #5a3e2b;
+      color: white;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      user-select: none;
+      z-index: 1000;
+    }
+    #chat-popup {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 320px;
+      max-height: 400px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      padding: 15px;
+      display: none;
+      flex-direction: column;
+      z-index: 1001;
+      font-family: Arial, sans-serif;
+    }
+    #chat-popup h4 {
+      margin: 0 0 10px 0;
+      font-family: 'Cinzel', serif;
+      color: #5a3e2b;
+    }
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+    /* Talebobler i chat */
+    .chat-message {
+      max-width: 75%;
+      padding: 8px 12px;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      position: relative;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+    }
+    .chat-message.user {
+      background: #d9cdbf;
+      color: #5a3e2b;
+      margin-left: auto;
+      border-bottom-right-radius: 0;
+    }
+    .chat-message.bot {
+      background: #e2f0d9;
+      color: #247524;
+      margin-right: auto;
+      border-bottom-left-radius: 0;
+      padding-left: 30px;
+    }
+    .chat-message.bot::before {
+      content: "🤖";
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      user-select: none;
+    }
+
+    #chat-input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #5a3e2b;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    #chat-send {
+      margin-top: 8px;
+      padding: 12px;
+      background: #5a3e2b;
+      color: white;
+      border: none;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      width: 100%;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    #chat-send:hover {
+      background: #3d2b1f;
+    }
+
+    #menu {
+      margin-bottom: 60px; /* Luft under menu */
+    }
+    #about {
+      margin-top: 100px; /* Luft over om-sektion */
+    }
+    #contact {
+      margin-top: 100px; /* Luft over Kontakt */
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  Coastal Brew
+  <nav>
+    <a href="#home">Hjem</a>
+    <a href="#menu">Menu</a>
+    <a href="#about">Om os</a>
+    <a href="#contact">Kontakt</a>
+  </nav>
+  <div id="cart" title="Se din kurv">🛒 <span id="cart-count">0</span></div>
+</header>
+
+<div id="status">Tjekker åbningstider...</div>
+
+<section id="menu">
+  <h2>Menu</h2>
+
+  <div id="filters">
+    <button data-filter="all" class="active">Alle</button>
+    <button data-filter="mad">Mad</button>
+    <button data-filter="drikke">Drikke</button>
+    <button data-filter="snacks">Snacks</button>
+    <button data-filter="pris-20">Under 30 kr.</button>
+    <button data-filter="pris-40">30-40 kr.</button>
+    <button data-filter="pris-50">Over 40 kr.</button>
+  </div>
+
+  <div class="menu-grid" id="menuGrid">
+    <!-- Menu items tilføjes her dynamisk -->
+  </div>
+</section>
+
+<section id="about">
+  <h2><em>Om Coastal Brew</em></h2>
+  <p>
+    Coastal Brew er mere end bare en café – det er et sted, hvor smag, kultur og fællesskab mødes i en perfekt harmoni. Inspireret af den solbeskinnede californiske kyst har vi skabt en bistro, hvor du kan nyde kvalitetskaffe, friskbagte lækkerier og sunde, kreative retter i en afslappet og stilfuld atmosfære.
+  </p>
+  <p>
+    Vores mission er at bringe lidt af det afslappede vestkystliv til dig, uanset om du kommer forbi til en hurtig kaffe, en hyggelig brunch eller en inspirerende arbejdsdag. Vi vægter kvalitet og bæredygtighed højt – alle vores råvarer er nøje udvalgt, økologiske hvor det er muligt, og vi samarbejder med lokale leverandører for at støtte nærområdet.
+  </p>
+  <p>
+    Hos Coastal Brew handler det ikke kun om mad og drikke, men om oplevelsen. Vores personale er passionerede og dedikerede til at give dig personlig og varm service, så du altid føler dig velkommen. Uanset om du ønsker at slappe af med en bog, mødes med venner eller arbejde, har vi skabt rammerne for det hele.
+  </p>
+  <p>
+    Kom og oplev den unikke stemning, hvor duften af friskmalet kaffe møder havets brise – velkommen til Coastal Brew, din oase af smag og ro midt i hverdagen.
+  </p>
+</section>
+
+<section id="contact">
+  <h2>Kontakt</h2>
+  <p>Kontakt os</p>
+<p>📞 Telefon: +45 12 34 56 78</p>
+<p>📧 Email: kontakt@coastalbrew.dk</p>
+<p>🏠 Adresse: Strandvej 123, 2900 Hellerup</p>
+
+<h3>Feedback og support</h3>
+<p>Hvis du har feedback eller oplever problemer med vores system, kan du kontakte udvikleren direkte:<br>
+📧 udvikler@coastalbrew.dk</p>
+<p>Vi sætter stor pris på din feedback og vil gøre vores bedste for at hjælpe dig!</p>
+<p>Du kan også chatte med vores chatbot for hurtige svar på ofte stillede spørgsmål.</p>
+<p>Vi glæder os til at høre fra dig!</p>
+</section>
+
+<!-- Kurv dropdown -->
+<div id="cart-dropdown">
+  <h3>Din Kurv</h3>
+  <ul id="cart-items"></ul>
+  <p id="total-price">Total: 0 kr.</p>
+  <label id="pickup-time-label" for="pickup-time">Vælg afhentningstid:</label>
+  <select id="pickup-time">
+    <option value="08:00">08:00</option>
+    <option value="08:15">08:15</option>
+    <option value="08:30">08:30</option>
+    <option value="08:45">08:45</option>
+    <option value="09:00">09:00</option>
+  </select>
+  <button id="confirm-purchase">Bekræft køb</button>
+</div>
+
+<!-- Chatbot ikon og popup -->
+<div id="chat-icon" title="Chat med Coastal Brew">💬</div>
+<div id="chat-popup">
+  <h4>Spørg Coastal Brew</h4>
+  <div id="chat-messages"></div>
+  <input type="text" id="chat-input" placeholder="Skriv din besked..." />
+  <button id="chat-send">Send</button>
+</div>
+
+<script>
+  // Menu data inkl. snacks
+  const menuData = [
+    { id: 1, navn: "Croissant", kategori: "mad", pris: 25, billede: "https://source.unsplash.com/300x200/?croissant" },
+    { id: 2, navn: "Kyllingesandwich", kategori: "mad", pris: 45, billede: "https://source.unsplash.com/300x200/?chicken-sandwich" },
+    { id: 3, navn: "Avocado Toast", kategori: "mad", pris: 35, billede: "https://source.unsplash.com/300x200/?avocado-toast" },
+    { id: 4, navn: "Cappuccino", kategori: "drikke", pris: 30, billede: "https://source.unsplash.com/300x200/?cappuccino" },
+    { id: 5, navn: "Citronvand", kategori: "drikke", pris: 20, billede: "https://source.unsplash.com/300x200/?lemon-water" },
+    { id: 6, navn: "Chokolade Muffin", kategori: "snacks", pris: 22, billede: "https://source.unsplash.com/300x200/?chocolate-muffin" },
+    { id: 7, navn: "Smoothie Berry", kategori: "drikke", pris: 40, billede: "https://source.unsplash.com/300x200/?berry-smoothie" },
+    { id: 8, navn: "Ostekiks", kategori: "snacks", pris: 18, billede: "https://source.unsplash.com/300x200/?cheese-crackers" }
+  ];
+
+  const cart = [];
+
+  const menuGrid = document.getElementById("menuGrid");
+  const cartCount = document.getElementById("cart-count");
+  const cartDropdown = document.getElementById("cart-dropdown");
+  const cartItems = document.getElementById("cart-items");
+  const totalPriceElem = document.getElementById("total-price");
+  const pickupTimeSelect = document.getElementById("pickup-time");
+  const confirmPurchaseBtn = document.getElementById("confirm-purchase");
+  const statusElem = document.getElementById("status");
+
+  // Chat elements
+  const chatIcon = document.getElementById("chat-icon");
+  const chatPopup = document.getElementById("chat-popup");
+  const chatMessages = document.getElementById("chat-messages");
+  const chatInput = document.getElementById("chat-input");
+  const chatSend = document.getElementById("chat-send");
+
+  // Åbningstider
+  function tjekAabningstid() {
+    const nu = new Date();
+    const dag = nu.getDay(); // 0=søndag, 1=mandag...
+    const time = nu.getHours();
+    const min = nu.getMinutes();
+
+    let aabenFra, aabenTil;
+
+    if (dag >= 1 && dag <= 4) { // mandag-torsdag 8-16
+      aabenFra = 8;
+      aabenTil = 16;
+    } else { // fredag-søndag 9-20
+      aabenFra = 9;
+      aabenTil = 20;
+    }
+
+    const aabenNu = (time > aabenFra || (time === aabenFra && min >= 0)) && (time < aabenTil);
+
+    if (aabenNu) {
+      statusElem.textContent = `Caféen har åbent. Vi lukker kl. ${aabenTil}:00 i dag.`;
+      statusElem.style.backgroundColor = "#e4f0e4";
+      statusElem.style.color = "#247524";
+    } else {
+      statusElem.textContent = `Caféen har lukket. Åbningstid i dag er ${aabenFra}:00 - ${aabenTil}:00.`;
+      statusElem.style.backgroundColor = "#f8d7da";
+      statusElem.style.color = "#842029";
+    }
+  }
+  tjekAabningstid();
+  setInterval(tjekAabningstid, 60000);
+
+  // Vis menu
+  function visMenu(items) {
+    menuGrid.innerHTML = "";
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "menu-item";
+      div.innerHTML = `
+        <img src="${item.billede}" alt="${item.navn}" />
+        <h3>${item.navn}</h3>
+        <p>${item.pris} kr.</p>
+      `;
+      div.addEventListener("click", () => {
+        tilfoejTilKurv(item);
+      });
+      menuGrid.appendChild(div);
+    });
+  }
+
+  // Tilføj til kurv
+  function tilfoejTilKurv(item) {
+    cart.push(item);
+    opdaterKurv();
+    alert(`${item.navn} er tilføjet til din kurv.`);
+  }
+
+  // Fjern fra kurv
+  function fjernFraKurv(navn) {
+    const index = cart.findIndex(i => i.navn === navn);
+    if (index !== -1) {
+      cart.splice(index, 1);
+      opdaterKurv();
+    }
+  }
+
+  // Opdater kurv
+  function opdaterKurv() {
+    cartCount.textContent = cart.length;
+    cartItems.innerHTML = "";
+    if (cart.length === 0) {
+      cartItems.innerHTML = "<li>Din kurv er tom.</li>";
+      totalPriceElem.textContent = "Total: 0 kr.";
+    } else {
+      const counts = {};
+      let totalPris = 0;
+      cart.forEach(item => {
+        counts[item.navn] = (counts[item.navn] || 0) + 1;
+        totalPris += item.pris;
+      });
+      for (const navn in counts) {
+        const li = document.createElement("li");
+        li.textContent = `${navn} x${counts[navn]}`;
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "✖";
+        removeBtn.className = "remove-btn";
+        removeBtn.addEventListener("click", () => {
+          fjernFraKurv(navn);
+        });
+        li.appendChild(removeBtn);
+        cartItems.appendChild(li);
+      }
+      totalPriceElem.textContent = `Total: ${totalPris} kr.`;
+    }
+  }
+
+  // Vis/skjul kurv dropdown
+  document.getElementById("cart").addEventListener("click", () => {
+    if (cartDropdown.style.display === "block") {
+      cartDropdown.style.display = "none";
+    } else {
+      cartDropdown.style.display = "block";
+      chatPopup.style.display = "none"; // skjul chat når kurv åbnes
+    }
+  });
+
+  // Bekræft køb
+  confirmPurchaseBtn.addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("Din kurv er tom.");
+      return;
+    }
+    const tid = pickupTimeSelect.value;
+    alert(`Tak for din bestilling! Du kan afhente dine varer kl. ${tid}.`);
+    cart.length = 0;
+    opdaterKurv();
+    cartDropdown.style.display = "none";
+  });
+
+  // Filter knapper
+  const filterButtons = document.querySelectorAll("#filters button");
+  filterButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      filterButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const filter = btn.getAttribute("data-filter");
+      filtrerMenu(filter);
+    });
+  });
+
+  function filtrerMenu(filter) {
+    let filteredItems = [];
+    switch (filter) {
+      case "all":
+        filteredItems = menuData;
+        break;
+      case "mad":
+        filteredItems = menuData.filter(i => i.kategori === "mad");
+        break;
+      case "drikke":
+        filteredItems = menuData.filter(i => i.kategori === "drikke");
+        break;
+      case "snacks":
+        filteredItems = menuData.filter(i => i.kategori === "snacks");
+        break;
+      case "pris-20":
+        filteredItems = menuData.filter(i => i.pris < 30);
+        break;
+      case "pris-40":
+        filteredItems = menuData.filter(i => i.pris >= 30 && i.pris <= 40);
+        break;
+      case "pris-50":
+        filteredItems = menuData.filter(i => i.pris > 40);
+        break;
+    }
+    visMenu(filteredItems);
+  }
+
+  // Initial visning
+  visMenu(menuData);
+  opdaterKurv();
+
+  // Chatbot funktionalitet
+  chatIcon.addEventListener("click", () => {
+    if (chatPopup.style.display === "flex") {
+      chatPopup.style.display = "none";
+    } else {
+      chatPopup.style.display = "flex";
+      cartDropdown.style.display = "none"; // skjul kurv hvis chat åbnes
+      chatInput.focus();
+    }
+  });
+
+  function tilfoejChatBesked(tekst, afsender) {
+    const div = document.createElement("div");
+    div.classList.add("chat-message");
+    div.classList.add(afsender === "bot" ? "bot" : "user");
+    div.textContent = tekst;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+function lavKurvOversigt() {
+  if (cart.length === 0) return "Din kurv er tom.";
+  const kurvOversigt = cart.reduce((acc, item) => {
+    acc[item.navn] = (acc[item.navn] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(kurvOversigt)
+    .map(([navn, antal]) => `${navn} x${antal}`)
+    .join("\n");
+}
+
+function botSvar(input) {
+  const txt = input.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+
+  if (txt.includes("abningstid") || txt.includes("abner") || txt.includes("abent")) {
+    return "Caféen har åbent mandag til torsdag fra 8 til 16, og fredag til søndag fra 9 til 20.";
+  }
+
+  if (txt.includes("vis kurv")) {
+    return lavKurvOversigt();
+  }
+
+  if (txt.startsWith("fjern ")) {
+    const navn = txt.replace("fjern ", "").trim();
+    const match = menuData.find(i => i.navn.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "") === navn);
+    if (match) {
+      fjernFraKurv(match.navn);
+      return `${match.navn} er fjernet fra din kurv.`;
+    }
+    return "Jeg kunne ikke finde varen i din kurv.";
+  }
+
+  if (txt.includes("hvad koster")) {
+    const fundet = menuData.find(i => txt.includes(i.navn.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")));
+    if (fundet) return `${fundet.navn} koster ${fundet.pris} kr.`;
+    return "Jeg kunne ikke finde varen i menuen.";
+  }
+
+  if (txt.includes("tilfoj") || txt.includes("kurv") || txt.includes("bestil")) {
+    const fundet = menuData.find(item => txt.includes(item.navn.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")));
+    if (fundet) {
+      tilfoejTilKurv(fundet);
+      return `${fundet.navn} er tilføjet til din kurv.`;
+    }
+    return "Jeg kunne ikke finde varen. Prøv at skrive navnet på varen fra menuen.";
+  }
+
+  if (txt.includes("menu")) {
+    return "Du kan klikke på en vare i menuen for at tilføje den til kurven, spørge hvad den koster eller få vist kurven.";
+  }
+
+  return "Jeg forstod ikke helt. Prøv at spørge om åbningstider, fjern/tilføj varer, pris, eller vis kurven.";
+}
+
+  
+// Send button handler
+chatSend.addEventListener("click", () => {
+  const brugerInput = chatInput.value.trim();
+  if (brugerInput === "") return;
+  tilfoejChatBesked(brugerInput, "user");
+  chatInput.value = "";
+
+  setTimeout(() => {
+    const svar = botSvar(brugerInput);
+    tilfoejChatBesked(svar, "bot");
+  }, 700);
+});
+
+// Enter key support
+chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    chatSend.click();
+  }
+});
+
+</script>
+</body>
+</html>
